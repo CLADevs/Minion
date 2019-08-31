@@ -22,11 +22,11 @@ class Main extends PluginBase implements Listener{
 	}
 
 	public function onEnable(): void{
-        $this->getServer()->getPluginManager()->registerEvents($this, $this);
-        Entity::registerEntity(Minion::class);
-    }
-
-    public static function get(): self{
+		Entity::registerEntity(Minion::class, true);
+		$this->getServer()->getPluginManager()->registerEvents($this, $this);
+	}
+	
+	public static function get(): self{
 		return self::$instance;
 	}
 
