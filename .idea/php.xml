@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PhpIncludePathManager">
+    <include_path>
+      <path value="$PROJECT_DIR$/../../plugin_data/NiceTools/PocketMine-MP_v3.9.4/src" />
+      <path value="$PROJECT_DIR$/../../plugin_data/NiceTools/PocketMine-MP_v3.9.4/vendor" />
+    </include_path>
+  </component>
+  <component name="PhpProjectSharedConfiguration" php_language_level="7.2" />
+</project>
