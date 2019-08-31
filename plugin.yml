@@ -5,5 +5,5 @@ main: CLADevs\Minion\Main
 author: xXNiceYT
 
 commands:
-  t:
+  minion:
     description: "Spawn the minion"
