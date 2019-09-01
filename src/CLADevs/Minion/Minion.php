@@ -120,7 +120,9 @@ class Minion extends Human{
         $tile = $this->getLevel()->getTile($this->getLookingBehind());
         if($tile instanceof \pocketmine\tile\Chest){
             $inv = $tile->getInventory();
-            $inv->addItem(Item::get($block->getId(), $block->getDamage()));
+            foreach($block->getDrops(Item::get(Item::AIR)) as $drop){
+                $inv->addItem($drop);
+            }
         }
         $this->getLevel()->setBlock($block, Block::get(Block::AIR), true, true);
     }
