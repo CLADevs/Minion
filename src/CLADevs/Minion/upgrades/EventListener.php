@@ -10,6 +10,7 @@ use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
 use pocketmine\item\Item;
 use pocketmine\nbt\tag\StringTag;
+use pocketmine\nbt\tag\IntTag;
 use pocketmine\utils\TextFormat as C;
 
 class EventListener implements Listener{
@@ -46,8 +47,13 @@ class EventListener implements Listener{
     public function onInteract(PlayerInteractEvent $e): void{
         $player = $e->getPlayer();
         $item = $e->getItem();
+        $time = 3;
+        $nbt = $item->getNamedTag();
 
-        if($item->getNamedTag()->hasTag("summon", StringTag::class)){
+        if($nbt->hasTag("summon", StringTag::class)){
+            if($nbt->hasTag("Time", IntTag::class)){
+                $time = $nbt->getInt("Time");
+            }
             $nbt = Entity::createBaseNBT($player, null, (90 + ($player->getDirection() * 90)) % 360);
             $nbt->setInt("Time", 3);
             $nbt->setTag($player->namedtag->getTag("Skin"));
