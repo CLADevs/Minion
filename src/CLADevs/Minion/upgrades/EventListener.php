@@ -45,15 +45,16 @@ class EventListener implements Listener{
 
     public function onInteract(PlayerInteractEvent $e): void{
         $player = $e->getPlayer();
-        $item = $e->getItem();
+        $hand = $player->getInventory()->getItemInHand();
 
-        if($item->getNamedTag()->hasTag("summon", StringTag::class)){
+        if($hand->getNamedTag()->hasTag("summon", StringTag::class)){
             $nbt = Entity::createBaseNBT($player, null, (90 + ($player->getDirection() * 90)) % 360);
             $nbt->setInt("Time", 3);
             $nbt->setTag($player->namedtag->getTag("Skin"));
             $entity = new Minion($player->getLevel(), $nbt);
             $entity->spawnToAll();
-            $player->getInventory()->removeItem(Item::get($item->getId(), $item->getDamage(), 1));
+            $hand->setCount($hand->getCount() - 1);
+            $player->getInventory()->setItemInHand($hand);
         }
     }
 }
