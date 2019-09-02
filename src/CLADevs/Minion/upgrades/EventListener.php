@@ -53,7 +53,7 @@ class EventListener implements Listener{
             $nbt->setTag($player->namedtag->getTag("Skin"));
             $entity = new Minion($player->getLevel(), $nbt);
             $entity->spawnToAll();
-            $player->getInventory()->removeItem($item);
+            $player->getInventory()->removeItem(Item::get($item->getId(), $item->getDamage(), 1));
         }
     }
 }
