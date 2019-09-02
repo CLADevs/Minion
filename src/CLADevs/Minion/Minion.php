@@ -132,6 +132,9 @@ class Minion extends Human{
     public function flagForDespawn(): void{
         parent::flagForDespawn();
         foreach($this->getDrops() as $drop){
+            $nbt = $drop->getNamedTag();
+            $nbt->setInt("Time", $this->getTime());
+            $drop->setNamedTag($nbt);
             $this->getLevel()->dropItem($this->add(0.5, 0.5, 0.5), $drop);
         }
     }
