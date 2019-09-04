@@ -5,5 +5,5 @@ main: CLADevs\Minion\Main
 author: CLADevs
 
 commands:
-  t:
+  minion:
     description: "get the Minion Spawner!"
