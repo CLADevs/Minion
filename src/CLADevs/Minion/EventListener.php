@@ -31,24 +31,9 @@ class EventListener implements Listener{
                     $player = $tr->getSource();
                     $entity = $inv->getEntity();
                     $e->setCancelled();
-//                    if($act->getSourceItem()->getId() === Item::EMERALD){
-//                        $time = $time = $entity->namedtag->getInt("Time");
-//                        if($time <= 1){
-//                            $tr->getSource()->sendMessage(C::RED . "You already maxed the mine speed!");
-//                            return;
-//                        }
-//                        if(!$tr->getSource()->getInventory()->contains(Item::get(Item::DIAMOND, 0, $entity->getCost()))){
-//                            $tr->getSource()->sendMessage(C::RED . "You don't have enough diamonds to upgrade..");
-//                            return;
-//                        }
-//                        $time = $entity->namedtag->getInt("Time") - 1;
-//                        $entity->namedtag->setInt("Time", $time);
-//                        $tr->getSource()->sendMessage(C::YELLOW . "Upgraded the mine speed to " . $time . "s!");
-//                        $inv->setItem(2, $inv->getSpeedUp());
-//                        $tr->getSource()->getInventory()->removeItem(Item::get(Item::DIAMOND, 0, $entity->getCost()));
-//                    }
                     switch($act->getSourceItem()->getId()){
                         case Item::REDSTONE_DUST:
+                            if(isset($this->linkable[$player->getName()])) unset($this->linkable[$player->getName()]);
                             $entity->flagForDespawn();
                             $player->getInventory()->addItem(Main::get()->getItem($player, $entity->getLevelM()));
                             break;
