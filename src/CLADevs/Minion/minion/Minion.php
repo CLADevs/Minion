@@ -38,6 +38,10 @@ class Minion extends Human{
         if($source instanceof EntityDamageByEntityEvent){
             $damager = $source->getDamager();
             if($damager instanceof Player){
+                if($damager->getName() !== $this->player){
+                    $damager->sendMessage(C::RED . "This is not your minion.");
+                    return;
+                }
                 $pos = new Position(intval($damager->getX()), intval($damager->getY()) + 2, intval($damager->getZ()), $damager->getLevel());
                 $damager->addWindow(new HopperInventory($pos, $this));
             }
