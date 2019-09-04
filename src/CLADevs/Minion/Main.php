@@ -33,7 +33,7 @@ class Main extends PluginBase{
 	}
 
 	public function onCommand(CommandSender $sender, Command $command, string $label, array $args): bool{
-	    if($command->getName() === "t"){
+	    if($command->getName() === "minion"){
 	        if($sender instanceof ConsoleCommandSender){
 	            if(!isset($args[0])){
                     $sender->sendMessage("Usage: /minion <player>");
