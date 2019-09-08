@@ -4,7 +4,7 @@ namespace CLADevs\Minion;
 
 use CLADevs\Minion\upgrades\EventListener;
 use pocketmine\command\Command;
-use pocketmine\command\CommandSender;
+use pocketmine\commadSender;
 use pocketmine\entity\Entity;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerInteractEvent;
