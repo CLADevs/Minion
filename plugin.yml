@@ -1,9 +1,9 @@
 name: Minion
-version: 1.0.1
+version: 1.0.2
 api: 3.0.0
 main: CLADevs\Minion\Main
 author: CLADevs
 
 commands:
   minion:
-    description: "Spawn the minion"
+    description: "get the Minion Spawner!"
