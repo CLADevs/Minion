@@ -3,8 +3,7 @@
 random-names: true
 names: ["Test", "Pretty Nice"]
 
-#What worlds can minions spawn in?
-enable-worlds: true
+#What worlds can minions not spawn in?
 worlds: ["world"]
 
 #The default size is 0.8 beacuse the pickaxe gonna stick out
