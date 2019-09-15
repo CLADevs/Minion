@@ -7,3 +7,10 @@ author: CLADevs
 commands:
   minion:
     description: "get the Minion Spawner!"
+permissions:
+  minion.commands:
+    description: "/minion command permission"
+    default: op
+  minion.open.others:
+    description: "Open other people minions"
+    default: op

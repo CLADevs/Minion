@@ -34,6 +34,10 @@ class Main extends PluginBase{
 
 	public function onCommand(CommandSender $sender, Command $command, string $label, array $args): bool{
 	    if($command->getName() === "minion"){
+	        if(!$sender->hasPermission("minion.commands")){
+	            $sender->sendMessage(C::RED . "You don't have permission to run this command.");
+	            return false;
+            }
 	        if($sender instanceof ConsoleCommandSender){
 	            if(!isset($args[0])){
                     $sender->sendMessage("Usage: /minion <player>");

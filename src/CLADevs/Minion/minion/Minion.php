@@ -41,7 +41,7 @@ class Minion extends Human{
             $damager = $source->getDamager();
             if($damager instanceof Player){
                 if($damager->getName() !== $this->player){
-                    if($damager->isOp() === false) {
+                    if(!$damager->hasPermission("minion.open.others")){
                         $damager->sendMessage(C::RED . "This is not your minion.");
                         return;
                     }
