@@ -47,7 +47,6 @@ class Main extends PluginBase{
 	                $sender->sendMessage(C::RED . "That player could not be found.");
 	                return false;
                 }
-	            $this->giveItem($p);
 	            return false;
             }elseif($sender instanceof Player){
 	            if(isset($args[0])){
@@ -55,11 +54,18 @@ class Main extends PluginBase{
                         $sender->sendMessage(C::RED . "That player could not be found.");
                         return false;
                     }
-                    $this->giveItem($p);
+     
+          $money = $this->getServer()->getPluginManager()->getPlugin("EconomyAPI")->myMoney($sender);
+           if($money < 500000) {
+            $sender->sendMessage(TF::RED . "Insufficient Money!");
+           }
+           else {
+            $this->getServer()->getPluginManager()->getPlugin("EconomyAPI")->reduceMoney($sender->getName(), 500000);
+                                           
+                    $this->giveItem($sender);
                     return false;
+	   }
                 }
-	            $this->giveItem($sender);
-	            return false;
             }
         }
         return true;
