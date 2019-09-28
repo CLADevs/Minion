@@ -61,8 +61,7 @@ class Main extends PluginBase{
            }
            else {
             $this->getServer()->getPluginManager()->getPlugin("EconomyAPI")->reduceMoney($sender->getName(), 500000);
-                                           
-                    $this->giveItem($sender);
+		    $this->giveItem($sender);
                     return false;
 	   }
                 }
