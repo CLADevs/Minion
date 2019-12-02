@@ -35,19 +35,20 @@ class Minion extends Human{
         $this->sendSpawnItems();
     }
 
-    public function attack(EntityDamageEvent $source): void{
+	public function onTap(PlayerInteractEvent $source){
         $source->setCancelled();
-        if($source instanceof EntityDamageByEntityEvent){
-            $damager = $source->getDamager();
-            if($damager instanceof Player){
-                if($damager->getName() !== $this->player){
-                    if(!$damager->hasPermission("minion.open.others")){
-                        $damager->sendMessage(C::RED . "This is not your minion.");
+        if($source instanceof PlayerInteractEvent){
+ 		    $id = $source->getBlock()->getId();
+            $player = $source->getPlayer();
+            if($player instanceof Player){
+                if($player->getName() !== $this->player){
+                    if(!$player->hasPermission("generator.open.others")){
+                        $player->sendMessage(C::RED . "This is not your minion.");
                         return;
                     }
                 }
-                $pos = new Position(intval($damager->getX()), intval($damager->getY()) + 2, intval($damager->getZ()), $damager->getLevel());
-                $damager->addWindow(new HopperInventory($pos, $this));
+                $pos = new Position(intval($player->getX()), intval($player->getY()) + 2, intval($player->getZ()), $player->getLevel());
+                $player->addWindow(new HopperInventory($pos, $this));
             }
         }
     }
