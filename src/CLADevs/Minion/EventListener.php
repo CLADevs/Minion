@@ -8,12 +8,14 @@ use CLADevs\Minion\minion\HopperInventory;
 use CLADevs\Minion\minion\Minion;
 use pocketmine\block\Chest;
 use pocketmine\entity\Entity;
+use pocketmine\event\entity\EntitySpawnEvent;
 use pocketmine\event\inventory\InventoryTransactionEvent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
 use pocketmine\item\Item;
 use pocketmine\nbt\tag\StringTag;
+use pocketmine\Server;
 use pocketmine\utils\TextFormat as C;
 
 use onebone\economyapi\EconomyAPI;
@@ -98,6 +100,15 @@ class EventListener implements Listener{
             unset($this->linkable[$player->getName()]);
             $player->sendMessage(C::GREEN . "You have linked a chest!");
             return;
+        }
+    }
+
+    public function onEntitySpawn(EntitySpawnEvent $e): void{
+        $entity = $e->getEntity();
+
+        if($entity instanceof Minion){
+            $pl = Server::getInstance()->getPluginManager()->getPlugin("ClearLagg");
+            if($pl !== null) $pl->exemptEntity($entity);
         }
     }
 }
