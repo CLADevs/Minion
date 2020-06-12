@@ -76,7 +76,7 @@ class EventListener implements Listener{
         $item = $e->getItem();
         $dnbt = $item->getNamedTag();
 
-        if($dnbt->hasTag("summon", StringTag::class)){
+        if($dnbt->hasTag("summon", StringTag::class) ans !$e->isCancelled()){
             if(in_array($player->getLevel()->getFolderName(), Main::get()->getConfig()->get("worlds"))) return;
             $nbt = Entity::createBaseNBT($player, null, (90 + ($player->getDirection() * 90)) % 360);
             $nbt->setInt("level", $dnbt->getInt("level"));
