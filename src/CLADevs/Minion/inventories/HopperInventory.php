@@ -2,30 +2,36 @@
 
 declare(strict_types=1);
 
-namespace CLADevs\Minion\minion;
+namespace CLADevs\Minion\inventories;
 
+use CLADevs\Minion\entities\MinionEntity;
+use CLADevs\Minion\EventListener;
+use CLADevs\Minion\Main;
 use pocketmine\block\Block;
+use pocketmine\block\Chest;
 use pocketmine\inventory\CustomInventory;
 use pocketmine\item\Item;
 use pocketmine\level\Position;
+use pocketmine\math\Vector3;
 use pocketmine\nbt\NetworkLittleEndianNBTStream;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\BlockActorDataPacket;
 use pocketmine\network\mcpe\protocol\types\WindowTypes;
 use pocketmine\Player;
-use pocketmine\utils\TextFormat as C;
+use pocketmine\utils\TextFormat;
 
 class HopperInventory extends CustomInventory{
 
+    /** @var Vector3|Position */
     protected $holder;
+    /** @var MinionEntity */
     protected $entity;
 
-    public function __construct(Position $position, Minion $entity){
+    public function __construct(Position $position, MinionEntity $entity){
         parent::__construct($position);
         $this->entity = $entity;
         $this->setItem(0, $this->getDestoryItem());
         $this->setItem(2, $this->getChestItem());
-        $this->setItem(4, $this->getLevelItem());
     }
 
     public function getName(): string{
@@ -50,7 +56,7 @@ class HopperInventory extends CustomInventory{
         $w = new NetworkLittleEndianNBTStream;
         $nbt = new CompoundTag("", []);
         $nbt->setString("id", "Hopper");
-        $nbt->setString("CustomName", C::GOLD . "Settings");
+        $nbt->setString("CustomName", TextFormat::GOLD . "Settings");
         $pk = new BlockActorDataPacket();
         $pk->x = $this->getHolder()->getX();
         $pk->y = $this->getHolder()->getY();
@@ -70,32 +76,52 @@ class HopperInventory extends CustomInventory{
         parent::onClose($who);
     }
 
-    public function getHolder(): Position{
+    /**
+     * @return Position|Vector3
+     */
+    public function getHolder(){
         return $this->holder;
     }
 
-    public function getEntity(): Minion{
+    public function getEntity(): MinionEntity{
         return $this->entity;
     }
 
     public function getDestoryItem(): Item{
         $item = Item::get(Item::REDSTONE_DUST);
-        $item->setCustomName(C::RED . "Destorys the miner");
+        $item->setCustomName(TextFormat::RED . "Destorys the miner");
         return $item;
     }
 
     public function getChestItem(): Item{
         $islinked = $this->entity->isChestLinked() ? "Yes" : "Nope";
         $item = Item::get(Item::CHEST);
-        $item->setCustomName(C::DARK_GREEN . "Link a chest");
-        $item->setLore([" ",  C::YELLOW . "Linked: " . C::WHITE . $islinked, C::YELLOW . "Coordinates: " . C::WHITE . $this->entity->getChestCoordinates()]);
+        $item->setCustomName(TextFormat::DARK_GREEN . "Link a chest");
+        $item->setLore([" ",  TextFormat::YELLOW . "Linked: " . TextFormat::WHITE . $islinked, TextFormat::YELLOW . "Coordinates: " . TextFormat::WHITE . $this->entity->getChestCoordinates()]);
         return $item;
     }
 
-    public function getLevelItem(): Item{
-        $item = Item::get(Item::EMERALD);
-        $item->setCustomName(C::LIGHT_PURPLE . "Level: " . C::YELLOW . $this->entity->getLevelM());
-        $item->setLore([C::LIGHT_PURPLE . "Cost: " . C::YELLOW . "$" . $this->entity->getCost()]);
-        return $item;
+    public function onListener(Player $player, Item $sourceItem, EventListener $listener): void{
+        $entity = $this->getEntity();
+        switch($sourceItem->getId()){
+            case Item::REDSTONE_DUST:
+                $listener->removeLinkable($player);
+                $entity->flagForDespawn();
+                $player->getInventory()->addItem(Main::asItem($this->entity::NAME, $player, $entity->getLevelM()));
+                break;
+            case Item::CHEST:
+                if($entity->getLookingBehind() instanceof Chest){
+                    $player->sendMessage(TextFormat::RED . "Please remove the chest behind the miner, to set new linkable chest.");
+                    return;
+                }
+                if(isset($this->linkable[$player->getName()])){
+                    $player->sendMessage(TextFormat::RED . "You are already on linking mode.");
+                    return;
+                }
+                $listener->addLinkable($player, $entity);
+                $player->sendMessage(TextFormat::LIGHT_PURPLE . "Please tap the chest that you want to link with.");
+                break;
+        }
+        $this->onClose($player);
     }
 }
