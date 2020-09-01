@@ -40,13 +40,15 @@ class MinerInventory extends HopperInventory{
                     $player->sendMessage(TextFormat::RED . "You have maxed the level!");
                     return;
                 }
-                if(EconomyAPI::getInstance()->myMoney($player) < $entity->getCost()){
-                    $player->sendMessage(TextFormat::RED . "You don't have enough money.");
-                    return;
+                if(class_exists('onebone\economyapi\EconomyAPI')){
+                    if(EconomyAPI::getInstance()->myMoney($player) < $entity->getCost()){
+                        $player->sendMessage(TextFormat::RED . "You don't have enough money.");
+                        return;
+                    }
+                    $entity->namedtag->setInt("level", $entity->namedtag->getInt("level") + 1);
+                    $player->sendMessage(TextFormat::GREEN . "Leveled up to " . $entity->getLevelM());
+                    EconomyAPI::getInstance()->reduceMoney($player, $entity->getCost());
                 }
-                $entity->namedtag->setInt("level", $entity->namedtag->getInt("level") + 1);
-                $player->sendMessage(TextFormat::GREEN . "Leveled up to " . $entity->getLevelM());
-                EconomyAPI::getInstance()->reduceMoney($player, $entity->getCost());
                 break;
         }
         $this->onClose($player);

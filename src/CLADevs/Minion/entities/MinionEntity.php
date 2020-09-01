@@ -22,6 +22,8 @@ use pocketmine\utils\TextFormat;
 
 class MinionEntity extends Human{
 
+    const NAME = "Unknown";
+
     /** @var null|string */
     protected $player, $minionName = null;
     /** @var bool */

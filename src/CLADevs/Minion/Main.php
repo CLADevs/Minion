@@ -93,8 +93,10 @@ class Main extends PluginBase{
                 $sender->sendMessage(TextFormat::RED . "Unknown type: " . $args[0]);
                 return false;
             }
-	        $player->getInventory()->addItem(self::asItem($type, $player));
-	        $sender->sendMessage(TextFormat::GREEN . "Given " . $player->getName() . " $type minion spawner.");
+            if($player instanceof Player){
+                $player->getInventory()->addItem(self::asItem($type, $player));
+                $sender->sendMessage(TextFormat::GREEN . "Given " . $player->getName() . " $type minion spawner.");
+            }
         }
         return true;
     }

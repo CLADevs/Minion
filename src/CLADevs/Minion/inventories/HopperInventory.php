@@ -47,31 +47,41 @@ class HopperInventory extends CustomInventory{
     }
 
     public function onOpen(Player $who): void{
+        $holder = $this->getHolder();
         $block = Block::get(Block::HOPPER_BLOCK);
-        $block->x = $this->getHolder()->getX();
-        $block->y = $this->getHolder()->getY();
-        $block->z = $this->getHolder()->getZ();
-        $block->level = $this->getHolder()->getLevel();
+        $block->x = $holder->getX();
+        $block->y = $holder->getY();
+        $block->z = $holder->getZ();
+        if($holder instanceof Position){
+            $block->level = $holder->getLevel();
+        }else{
+            $block->level = $this->getEntity()->getLevel();
+        }
         $who->getLevel()->sendBlocks([$who], [$block]);
         $w = new NetworkLittleEndianNBTStream;
         $nbt = new CompoundTag("", []);
         $nbt->setString("id", "Hopper");
         $nbt->setString("CustomName", TextFormat::GOLD . "Settings");
         $pk = new BlockActorDataPacket();
-        $pk->x = $this->getHolder()->getX();
-        $pk->y = $this->getHolder()->getY();
-        $pk->z = $this->getHolder()->getZ();
+        $pk->x = $holder->getX();
+        $pk->y = $holder->getY();
+        $pk->z = $holder->getZ();
         $pk->namedtag = $w->write($nbt);
         $who->dataPacket($pk);
         parent::onOpen($who);
     }
 
     public function onClose(Player $who): void{
+        $holder = $this->getHolder();
         $block = Block::get(Block::AIR);
-        $block->x = $this->getHolder()->getX();
-        $block->y = $this->getHolder()->getY();
-        $block->z = $this->getHolder()->getZ();
-        $block->level = $this->getHolder()->getLevel();
+        $block->x = $holder->getX();
+        $block->y = $holder->getY();
+        $block->z = $holder->getZ();
+        if($holder instanceof Position){
+            $block->level = $holder->getLevel();
+        }else{
+            $block->level = $this->getEntity()->getLevel();
+        }
         $who->getLevel()->sendBlocks([$who], [$block]);
         parent::onClose($who);
     }
@@ -114,7 +124,7 @@ class HopperInventory extends CustomInventory{
                     $player->sendMessage(TextFormat::RED . "Please remove the chest behind the miner, to set new linkable chest.");
                     return;
                 }
-                if(isset($this->linkable[$player->getName()])){
+                if($listener->isLinkable($player)){
                     $player->sendMessage(TextFormat::RED . "You are already on linking mode.");
                     return;
                 }
