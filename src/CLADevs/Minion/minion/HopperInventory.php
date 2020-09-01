@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace CLADevs\Minion\minion;
 
+use CLADevs\Minion\EventListener;
+use CLADevs\Minion\Main;
+use CLADevs\Minion\utils\Configuration;
+use onebone\economyapi\EconomyAPI;
 use pocketmine\block\Block;
+use pocketmine\block\Chest;
 use pocketmine\inventory\CustomInventory;
 use pocketmine\item\Item;
 use pocketmine\level\Position;
@@ -13,6 +18,7 @@ use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\BlockActorDataPacket;
 use pocketmine\network\mcpe\protocol\types\WindowTypes;
 use pocketmine\Player;
+use pocketmine\utils\TextFormat;
 use pocketmine\utils\TextFormat as C;
 
 class HopperInventory extends CustomInventory{
@@ -97,5 +103,42 @@ class HopperInventory extends CustomInventory{
         $item->setCustomName(C::LIGHT_PURPLE . "Level: " . C::YELLOW . $this->entity->getLevelM());
         $item->setLore([C::LIGHT_PURPLE . "Cost: " . C::YELLOW . "$" . $this->entity->getCost()]);
         return $item;
+    }
+
+    public function onListener(Player $player, Item $sourceItem, EventListener $listener): void{
+        $entity = $this->getEntity();
+        switch($sourceItem->getId()){
+            case Item::REDSTONE_DUST:
+                $listener->removeLinkable($player);
+                $entity->flagForDespawn();
+                $player->getInventory()->addItem(Main::asItem($player, $entity->getLevelM()));
+                break;
+            case Item::CHEST:
+                if($entity->getLookingBehind() instanceof Chest){
+                    $player->sendMessage(TextFormat::RED . "Please remove the chest behind the miner, to set new linkable chest.");
+                    return;
+                }
+                if(isset($this->linkable[$player->getName()])){
+                    $player->sendMessage(TextFormat::RED . "You are already on linking mode.");
+                    return;
+                }
+                $listener->addLinkable($player, $entity);
+                $player->sendMessage(TextFormat::LIGHT_PURPLE . "Please tap the chest that you want to link with.");
+                break;
+            case Item::EMERALD:
+                if($entity->getLevelM() >= Configuration::getMaxLevel()){
+                    $player->sendMessage(TextFormat::RED . "You have maxed the level!");
+                    return;
+                }
+                if(EconomyAPI::getInstance()->myMoney($player) < $entity->getCost()){
+                    $player->sendMessage(TextFormat::RED . "You don't have enough money.");
+                    return;
+                }
+                $entity->namedtag->setInt("level", $entity->namedtag->getInt("level") + 1);
+                $player->sendMessage(TextFormat::GREEN . "Leveled up to " . $entity->getLevelM());
+                EconomyAPI::getInstance()->reduceMoney($player, $entity->getCost());
+                break;
+        }
+        $this->onClose($player);
     }
 }

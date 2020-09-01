@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CLADevs\Minion\minion;
 
 use CLADevs\Minion\Main;
+use CLADevs\Minion\utils\Configuration;
 use pocketmine\block\Block;
 use pocketmine\block\Chest;
 use pocketmine\entity\Human;
@@ -16,22 +17,22 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\AnimatePacket;
 use pocketmine\Player;
 use pocketmine\Server;
-use pocketmine\utils\TextFormat as C;
+use pocketmine\utils\TextFormat;
 
 class Minion extends Human{
 
-    protected $player;
-    protected $minionname = "";
+    /** @var string */
+    protected $player, $minionName;
 
     public function initEntity(): void{
         parent::initEntity();
         $this->player = $this->namedtag->getString("player");
-        $this->minionname = $this->player . "'s Miner";
+        $this->minionName = $this->player . "'s Miner";
         $this->setHealth(1);
         $this->setMaxHealth(1);
         $this->setNameTagAlwaysVisible();
-        $this->setNameTag($this->minionname);
-        $this->setScale((float)Main::get()->getConfig()->get("size"));
+        $this->setNameTag($this->minionName);
+        $this->setScale((float)Configuration::getSize());
         $this->sendSpawnItems();
     }
 
@@ -40,9 +41,14 @@ class Minion extends Human{
         if($source instanceof EntityDamageByEntityEvent){
             $damager = $source->getDamager();
             if($damager instanceof Player){
+                if(Main::get()->isInRemove($damager)){
+                    $this->flagForDespawn();
+                    $damager->sendMessage(TextFormat::GREEN . "Removed " . $this->player . " minion.");
+                    return;
+                }
                 if($damager->getName() !== $this->player){
                     if(!$damager->hasPermission("minion.open.others")){
-                        $damager->sendMessage(C::RED . "This is not your minion.");
+                        $damager->sendMessage(TextFormat::RED . "This is not your minion.");
                         return;
                     }
                 }
@@ -56,9 +62,9 @@ class Minion extends Human{
         $update = parent::entityBaseTick($tickDiff);
         //random names
         if($this->getLevel()->getServer()->getTick() % 30 == 0){
-            if(Main::get()->getConfig()->get("random-names")){
-                $names = Main::get()->getConfig()->get("names");
-                $this->setNameTag($this->minionname . "\n" . $names[array_rand($names)]);
+            if(Configuration::allowRandomNames()){
+                $names = Configuration::getNames();
+                $this->setNameTag($this->minionName . TextFormat::EOL . $names[array_rand($names)]);
             }
         }
         if($this->getLevel()->getServer()->getTick() % $this->getMineTime() == 0){
@@ -99,41 +105,11 @@ class Minion extends Human{
     }
 
     public function getLookingBlock(): Block{
-        $block = Block::get(Block::AIR);
-        switch($this->getDirection()){
-            case 0:
-                $block = $this->getLevel()->getBlock($this->add(1, 0, 0));
-                break;
-            case 1:
-                $block = $this->getLevel()->getBlock($this->add(0, 0, 1));
-                break;
-            case 2:
-                $block = $this->getLevel()->getBlock($this->add(-1, 0, 0));
-                break;
-            case 3:
-                $block = $this->getLevel()->getBlock($this->add(0, 0, -1));
-                break;
-        }
-        return $block;
+        return $this->getLevel()->getBlock($this->add($this->getDirectionVector()->multiply(1)));
     }
 
     public function getLookingBehind(): Block{
-        $block = Block::get(Block::AIR);
-        switch($this->getDirection()){
-            case 0:
-                $block = $this->getLevel()->getBlock($this->add(-1, 0, 0));
-                break;
-            case 1:
-                $block = $this->getLevel()->getBlock($this->add(0, 0, -1));
-                break;
-            case 2:
-                $block = $this->getLevel()->getBlock($this->add(1, 0, 0));
-                break;
-            case 3:
-                $block = $this->getLevel()->getBlock($this->add(0, 0, 1));
-                break;
-        }
-        return $block;
+        return $this->getLevel()->getBlock($this->add($this->getDirectionVector()->multiply(-1)));
     }
 
     public function checkEverythingElse(): bool{
@@ -143,11 +119,11 @@ class Minion extends Human{
         if($tile instanceof \pocketmine\tile\Chest){
             $inventory = $tile->getInventory();
 
-            if(Main::get()->getConfig()->getNested("blocks.normal")){
+            if(Configuration::isNormalPickaxe()){
                 foreach($block->getDropsForCompatibleTool(Item::get(Item::DIAMOND_PICKAXE)) as $drop){
                     if($inventory->canAddItem($drop)) return true;
                 }
-            }elseif(!in_array($block->getId(), Main::get()->getConfig()->getNested("blocks.cannot"))){
+            }elseif(!in_array($block->getId(), Configuration::getUnbreakableBlocks())){
                 if($inventory->canAddItem(Item::get($block->getId(), $block->getDamage()))) return true;
             }
             return false;
@@ -160,12 +136,12 @@ class Minion extends Human{
         $tile = $this->getLevel()->getTile($b);
         if($tile instanceof \pocketmine\tile\Chest){
             $inv = $tile->getInventory();
-            if(Main::get()->getConfig()->getNested("blocks.normal")){
+            if(Configuration::isNormalPickaxe()){
                 foreach($block->getDropsForCompatibleTool(Item::get(Item::DIAMOND_PICKAXE)) as $drop){
                     $inv->addItem($drop);
                 }
             }else{
-                if(in_array($block->getId(), Main::get()->getConfig()->getNested("blocks.cannot"))) return;
+                if(in_array($block->getId(), Configuration::getUnbreakableBlocks())) return;
                 $inv->addItem(Item::get($block->getId(), $block->getDamage()));
             }
         }
@@ -173,7 +149,7 @@ class Minion extends Human{
     }
 
     public function getMaxTime(): int{
-        return (20 * Main::get()->getConfig()->getNested("level.max")) + 20;
+        return (20 * Configuration::getMaxLevel()) + 20;
     }
 
     public function getMineTime(): int{
@@ -181,7 +157,7 @@ class Minion extends Human{
     }
 
     public function getCost(): int{
-        return Main::get()->getConfig()->getNested("level.cost") * $this->getLevelM();
+        return Configuration::getLevelCost() * $this->getLevelM();
     }
 
     public function getLevelM(): int{
@@ -194,11 +170,11 @@ class Minion extends Human{
 
     public function getChestCoordinates(): string{
         if(!isset($this->getCoord()[1])){
-            return C::RED . "Not found";
+            return TextFormat::RED . "Not found";
         }
-        $coord = C::YELLOW . "X: " . C::WHITE . $this->getCoord()[0] . " ";
-        $coord .= C::YELLOW . "Y: " . C::WHITE . $this->getCoord()[1] . " ";
-        $coord .= C::YELLOW . "Z: " . C::WHITE . $this->getCoord()[2] . " ";
+        $coord = TextFormat::YELLOW . "X: " . TextFormat::WHITE . $this->getCoord()[0] . " ";
+        $coord .= TextFormat::YELLOW . "Y: " . TextFormat::WHITE . $this->getCoord()[1] . " ";
+        $coord .= TextFormat::YELLOW . "Z: " . TextFormat::WHITE . $this->getCoord()[2] . " ";
         return $coord;
     }
 

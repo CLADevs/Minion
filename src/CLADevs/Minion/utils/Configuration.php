@@ -25,6 +25,9 @@ class Configuration{
         return self::getConfig()->get("worlds", []);
     }
 
+    /**
+     * @return float|int
+     */
     public static function getSize(){
         return self::getConfig()->get("size", 0.8);
     }
@@ -47,9 +50,5 @@ class Configuration{
 
     public static function allowSmeltOre(): bool{
         return self::getConfig()->get("smelt", true);
-    }
-
-    public static function allowOffline(): bool{
-        return self::getConfig()->getNested("offline", true);
     }
 }
