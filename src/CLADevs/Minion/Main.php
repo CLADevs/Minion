@@ -23,11 +23,12 @@ class Main extends PluginBase{
 
 	public function onLoad(): void{
 		self::$instance = $this;
-        $this->saveDefaultConfig();
+		$this->saveDefaultConfig();
 	}
 
 	public function onEnable(): void{
 	    Entity::registerEntity(MinerMinion::class, true);
+	    Entity::registerEntity(FarmerMinion::class, true);
 	    $this->getServer()->getPluginManager()->registerEvents(new EventListener(), $this);
 	    if(!class_exists('onebone\economyapi\EconomyAPI')){
 	        $this->getLogger()->error(TextFormat::RED . "EconomyAPI is required for this plugin to work.");
