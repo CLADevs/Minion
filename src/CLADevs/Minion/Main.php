@@ -30,16 +30,6 @@ class Main extends PluginBase{
 	    Entity::registerEntity(MinerMinion::class, true);
 	    Entity::registerEntity(FarmerMinion::class, true);
 	    $this->getServer()->getPluginManager()->registerEvents(new EventListener(), $this);
-	    if(!class_exists('onebone\economyapi\EconomyAPI')){
-	        $this->getLogger()->error(TextFormat::RED . "EconomyAPI is required for this plugin to work.");
-	        $this->getServer()->getPluginManager()->disablePlugin($this);
-	        return;
-        }
-	    if(!class_exists('muqsit\invcrashfix\Loader')){
-	        $this->getLogger()->error(TextFormat::RED . "InvCrashFix By Muqsit is required to fix inventory crash.");
-	        $this->getServer()->getPluginManager()->disablePlugin($this);
-	        return;
-        }
     }
 
 	public static function get(): self{
