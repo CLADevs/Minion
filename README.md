@@ -12,10 +12,12 @@
 - /minion (type) (player) - gives minion to other players.
 - /minion (remove|rm|forceremove) - this allows to enter remove mode for minion.
 
-#### Setup
-- You need to install [InvCrashFix](https://github.com/Muqsit/InvCrashFix) this will fix inventory crashs.
-- You need to install [EconomyAPI](https://poggit.pmmp.io/p/EconomyAPI) this is the minion upgrade economy system for now.
-- Install this plugin from [poggit](https://poggit.pmmp.io/ci/CLADevs/Minion/Minion) or [github](https://github.com/CLADevs/Minion) it self.
+#### Installation
+-  [poggit](https://poggit.pmmp.io/ci/CLADevs/Minion/Minion) or [github](https://github.com/CLADevs/Minion)
+
+#### Crashs
+- [InvCrashFix](https://github.com/Muqsit/InvCrashFix) this will fix inventory crashs.
+- [EconomyAPI](https://poggit.pmmp.io/p/EconomyAPI) this is the minion upgrade economy system for now.
 
 ## Need Help?
   Open an Issue [here](https://github.com/CLADevs/Minion/issues/new).
