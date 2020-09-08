@@ -40,7 +40,7 @@ class MinerMinion extends MinionEntity{
                 }
             }
             //Breaks
-            if ($this->getLookingBlock()->getId() !== Block::AIR and $this->isChestLinked()){
+            if ($this->getLookingBlock()->getId() !== Block::AIR && $this->isChestLinked()){
                 $this->breakBlock($this->getLookingBlock());
             }
         }
@@ -64,7 +64,7 @@ class MinerMinion extends MinionEntity{
         return $this->getMaxTime() - (20 * $this->getLevelM());
     }
 
-    public function getCost(): int{
-        return Configuration::getLevelCost() * $this->getLevelM();
+    public function getCost(int $level = 1): int{
+        return Configuration::getLevelCost($level);
     }
 }

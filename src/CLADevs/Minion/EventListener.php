@@ -60,7 +60,6 @@ class EventListener implements Listener{
         $player = $e->getPlayer();
         $item = $e->getItem();
         $dnbt = $item->getNamedTag();
-        var_dump($e->getBlock()->getDamage() . ":" . $e->getBlock()->getId() . " " .  $e->getBlock()->getX() . " " . $e->getBlock()->getY() . " " . $e->getBlock()->getZ());
 
         if($dnbt->hasTag("summon", StringTag::class) and !$e->isCancelled()){
             if(in_array($player->getLevel()->getFolderName(), Configuration::getNotAllowWorlds())){
@@ -98,6 +97,7 @@ class EventListener implements Listener{
             if($entity instanceof MinionEntity) $entity->namedtag->setString("xyz", $block->getX() . ":" . $block->getY() . ":" . $block->getZ());
             $this->removeLinkable($player);
             $player->sendMessage(TextFormat::GREEN . "You have linked a chest!");
+            $e->setCancelled();
             return;
         }
     }

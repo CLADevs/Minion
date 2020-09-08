@@ -100,12 +100,15 @@ class MinionEntity extends Human{
         $tile = $this->getLevel()->getTile($b);
         if($tile instanceof Chest){
             $inv = $tile->getInventory();
-            if(Configuration::isNormalPickaxe()){
+            $smeltLevel = Configuration::getSmeltLevel();
+
+            if(Configuration::isNormalPickaxe() || (strtolower($smeltLevel) !== "n" && $this->getLevelM() >= $smeltLevel)){
                 foreach($block->getDropsForCompatibleTool($this->getInventory()->getItemInHand()) as $drop){
                     $inv->addItem($drop);
                 }
                 $success = true;
-            }elseif(!in_array($block->getId(), Configuration::getUnbreakableBlocks())){
+            }
+            if(!in_array($block->getId(), Configuration::getUnbreakableBlocks()) && !$success){
                 $inv->addItem(Item::get($block->getId(), $block->getDamage()));
                 $success = true;
             }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CLADevs\Minion\entities\types;
 
 use CLADevs\Minion\entities\MinionEntity;
+use pocketmine\block\Block;
 use pocketmine\block\BlockIds;
 use pocketmine\block\Chest;
 use pocketmine\block\Crops;
@@ -48,6 +49,7 @@ class FarmerMinion extends MinionEntity{
                             if($this->level->getBlock($xz) instanceof Crops && $b->getDamage() >= 7){
                                 $this->lookAt($xz);
                                 $this->breakBlock($b);
+                                return $update;
                             }
                         }
                         $i++;
@@ -56,6 +58,29 @@ class FarmerMinion extends MinionEntity{
             }
         }
         return $update;
+    }
+
+    public function breakBlock(Block $block): bool{
+        $parent = parent::breakBlock($block);
+        if($parent){
+            $b = $this->getLevel()->getBlock(new Vector3(intval($this->getCoord()[0]), intval($this->getCoord()[1]), intval($this->getCoord()[2])));
+            $tile = $this->getLevel()->getTile($b);
+
+            if($tile instanceof \pocketmine\tile\Chest){
+                $inv = $tile->getInventory();
+
+                foreach($inv->getContents() as $slot => $item){
+                    if($item->getBlock()->getId() === $block->getId()){
+                        $this->getInventory()->setItemInHand($item);
+                        $this->getLevel()->setBlock($block, $item->getBlock(), true, true);
+                        $this->sendSpawnItems();
+                        $inv->setItem($slot, $item->setCount($item->getCount() - 1));
+                        break;
+                    }
+                }
+            }
+        }
+        return $parent;
     }
 
     public function sendSpawnItems(): void{

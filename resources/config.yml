@@ -18,10 +18,15 @@ blocks:
   cannot: [7, 20]
 
 level:
-  #every level it will cost 10 * level
-  cost: 10
+  #if they reach level 2 or higher they will have auto smelt unlocked put "n" to turn it off
+  auto-smelt: 2
   #this is the max level
   max: 3
+
+levels:
+  1: 30
+  2: 60
+  3: 90
 
 ##Let the minion work when the owner is offline when its true
 #offline: true

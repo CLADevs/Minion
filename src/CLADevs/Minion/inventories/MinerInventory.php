@@ -26,8 +26,8 @@ class MinerInventory extends HopperInventory{
 
     public function getLevelItem(): Item{
         $item = Item::get(Item::EMERALD);
-        $item->setCustomName(TextFormat::LIGHT_PURPLE . "Level: " . TextFormat::YELLOW . $this->entity->getLevelM());
-        $item->setLore([TextFormat::LIGHT_PURPLE . "Cost: " . TextFormat::YELLOW . "$" . $this->entity->getCost()]);
+        $item->setCustomName(TextFormat::LIGHT_PURPLE . "Level: " . TextFormat::YELLOW .($lvl = $this->entity->getLevelM()));
+        $item->setLore([TextFormat::LIGHT_PURPLE . "Cost: " . TextFormat::YELLOW . "$" . $this->entity->getCost($lvl)]);
         return $item;
     }
 
@@ -36,18 +36,18 @@ class MinerInventory extends HopperInventory{
         $entity = $this->entity;
         switch($sourceItem->getId()){
             case Item::EMERALD:
-                if($entity->getLevelM() >= Configuration::getMaxLevel()){
+                if(($lvl = $entity->getLevelM()) >= Configuration::getMaxLevel()){
                     $player->sendMessage(TextFormat::RED . "You have maxed the level!");
                     return;
                 }
                 if(class_exists('onebone\economyapi\EconomyAPI')){
-                    if(EconomyAPI::getInstance()->myMoney($player) < $entity->getCost()){
+                    if(EconomyAPI::getInstance()->myMoney($player) < $entity->getCost($lvl)){
                         $player->sendMessage(TextFormat::RED . "You don't have enough money.");
                         return;
                     }
                     $entity->namedtag->setInt("level", $entity->namedtag->getInt("level") + 1);
                     $player->sendMessage(TextFormat::GREEN . "Leveled up to " . $entity->getLevelM());
-                    EconomyAPI::getInstance()->reduceMoney($player, $entity->getCost());
+                    EconomyAPI::getInstance()->reduceMoney($player, $entity->getCost($lvl));
                 }
                 break;
         }

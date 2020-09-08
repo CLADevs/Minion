@@ -40,15 +40,15 @@ class Configuration{
         return self::getConfig()->getNested("blocks.cannot", []);
     }
 
-    public static function getLevelCost(): int{
-        return self::getConfig()->getNested("level.cost", 10);
+    public static function getLevelCost(int $level = 1): int{
+        return self::getConfig()->getNested("levels.$level", 10);
     }
 
     public static function getMaxLevel(): int{
         return self::getConfig()->getNested("level.max", 3);
     }
 
-    public static function allowSmeltOre(): bool{
-        return self::getConfig()->get("smelt", true);
+    public static function getSmeltLevel(): int{
+        return self::getConfig()->getNested("level.auto-smelt", 2);
     }
 }
