@@ -4,34 +4,56 @@ declare(strict_types=1);
 
 namespace CLADevs\Minion\entities;
 
-use CLADevs\Minion\inventories\HopperInventory;
-use CLADevs\Minion\Main;
+use CLADevs\Minion\Loader;
+use CLADevs\Minion\MinionListener;
 use CLADevs\Minion\utils\Configuration;
+use muqsit\invmenu\InvMenu;
+use muqsit\invmenu\transaction\InvMenuTransaction;
+use muqsit\invmenu\transaction\InvMenuTransactionResult;
 use pocketmine\block\Block;
+use pocketmine\block\tile\Chest;
+use pocketmine\block\VanillaBlocks;
 use pocketmine\entity\Human;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\item\Item;
-use pocketmine\level\Position;
+use pocketmine\inventory\Inventory;
+use pocketmine\item\ItemFactory;
+use pocketmine\item\ItemIds;
+use pocketmine\item\VanillaItems;
 use pocketmine\math\Vector3;
+use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\AnimatePacket;
-use pocketmine\Player;
-use pocketmine\Server;
-use pocketmine\tile\Chest;
+use pocketmine\player\Player;
 use pocketmine\utils\TextFormat;
 
-class MinionEntity extends Human{
+abstract class MinionEntity extends Human{
 
-    const NAME = "Unknown";
+    const TAG_PLAYER = "player";
+    const TAG_LEVEL = "level";
+    const TAG_XYZ = "xyz";
 
-    /** @var null|string */
-    protected $player, $minionName = null;
-    /** @var bool */
-    protected $openGUI = true;
+    protected ?string $customName = null;
+    protected string $player;
 
-    public function initEntity(): void{
-        parent::initEntity();
-        $this->player = $this->namedtag->getString("player");
+    protected int $level = 1;
+
+    protected ?Vector3 $chestPosition = null;
+
+    protected bool $openGUI = true;
+
+    abstract protected function handleInventory(Player $attacker): void;
+
+    abstract public static function getMinionType(): string;
+
+    protected function initEntity(CompoundTag $nbt): void{
+        parent::initEntity($nbt);
+        $this->player = $nbt->getString(self::TAG_PLAYER, "");
+        $this->level = $nbt->getInt(self::TAG_LEVEL, 1);
+        $xyz = explode(":", $nbt->getString(self::TAG_XYZ, ""));
+
+        if(count($xyz) === 3 && is_numeric($xyz[0]) && is_numeric($xyz[1]) && is_numeric($xyz[2])){
+            $this->chestPosition = new Vector3(floatval($xyz[0]), floatval($xyz[1]), floatval($xyz[2]));
+        }
         $this->initNameTag();
         $this->setHealth(1);
         $this->setMaxHealth(1);
@@ -39,118 +61,168 @@ class MinionEntity extends Human{
         $this->sendSpawnItems();
     }
 
+    public function saveNBT(): CompoundTag{
+        $nbt = parent::saveNBT();
+        $nbt->setString(self::TAG_PLAYER, $this->player);
+        $nbt->setString(self::TAG_XYZ, $this->chestPosition === null ? "" : ($this->chestPosition->x . ":" . $this->chestPosition->y . ":" . $this->chestPosition->z));
+        $nbt->setInt(self::TAG_LEVEL, $this->level);
+        return $nbt;
+    }
+
     public function initNameTag(): void{
-        if($this->minionName === null){
-            $this->minionName = $this->player . "'s Minion";
+        if($this->customName === null){
+            $this->customName = $this->player . "'s Minion";
         }
-        $this->setNameTag($this->minionName);
+        $this->setNameTag($this->customName);
         $this->setNameTagAlwaysVisible();
     }
 
     public function attack(EntityDamageEvent $source): void{
-        $source->setCancelled();
         if($source instanceof EntityDamageByEntityEvent){
-            $damager = $source->getDamager();
-            if($damager instanceof Player){
-                if(Main::get()->isInRemove($damager)){
+            $attacker = $source->getDamager();
+
+            if($attacker instanceof Player){
+                if(Loader::getInstance()->isInRemove($attacker)){
                     $this->flagForDespawn();
-                    $damager->sendMessage(TextFormat::GREEN . "Removed " . $this->player . " minion.");
+                    $attacker->sendMessage(TextFormat::GREEN . "Removed " . $this->player . " minion.");
                     return;
                 }
                 if($this->openGUI){
-                    if($damager->getName() !== $this->player){
-                        if(!$damager->hasPermission("minion.open.others")){
-                            $damager->sendMessage(TextFormat::RED . "This is not your minion.");
+                    if($attacker->getName() !== $this->player){
+                        if(!$attacker->hasPermission("minion.open.others")){
+                            $attacker->sendMessage(TextFormat::RED . "This is not your minion.");
                             return;
                         }
                     }
-                    $pos = new Position(intval($damager->getX()), intval($damager->getY()) + 2, intval($damager->getZ()), $damager->getLevel());
-                    $damager->addWindow($this->getWindow($pos));
+                    $this->handleInventory($attacker);
                 }
             }
         }
     }
 
-    public function getWindow(Position $position){
-       return new HopperInventory($position, $this);
-    }
-
     public function entityBaseTick(int $tickDiff = 1): bool{
         $update = parent::entityBaseTick($tickDiff);
         //random names
-        if($this->getLevel()->getServer()->getTick() % 30 == 0){
+        if($this->getWorld()->getServer()->getTick() % 30 == 0){
             if(Configuration::allowRandomNames()){
                 $names = Configuration::getNames();
-                $this->setNameTag($this->minionName . TextFormat::EOL . $names[array_rand($names)]);
+                $this->setNameTag($this->customName . TextFormat::EOL . $names[array_rand($names)]);
             }
         }
         return $update;
     }
 
     public function sendSpawnItems(): void{
-        $this->getArmorInventory()->setHelmet( Item::get(Item::SKULL, 3));
-        $this->getArmorInventory()->setChestplate(Item::get(Item::LEATHER_CHESTPLATE));
-        $this->getArmorInventory()->setLeggings(Item::get(Item::LEATHER_LEGGINGS));
-        $this->getArmorInventory()->setBoots(Item::get(Item::LEATHER_BOOTS));
+        $this->getArmorInventory()->setHelmet(VanillaItems::PLAYER_HEAD());
+        $this->getArmorInventory()->setChestplate(VanillaItems::LEATHER_TUNIC());
+        $this->getArmorInventory()->setLeggings(VanillaItems::LEATHER_PANTS());
+        $this->getArmorInventory()->setBoots(VanillaItems::LEATHER_BOOTS());
     }
 
     public function breakBlock(Block $block): bool{
+        if($this->chestPosition === null){
+            return false;
+        }
         $success = false;
-        $b = $this->getLevel()->getBlock(new Vector3(intval($this->getCoord()[0]), intval($this->getCoord()[1]), intval($this->getCoord()[2])));
-        $tile = $this->getLevel()->getTile($b);
+        $tile = $this->getWorld()->getTile($this->chestPosition);
+
         if($tile instanceof Chest){
             $inv = $tile->getInventory();
             $smeltLevel = Configuration::getSmeltLevel();
 
-            if(Configuration::isNormalPickaxe() || (strtolower($smeltLevel) !== "n" && $this->getLevelM() >= $smeltLevel)){
+            if(Configuration::isNormalPickaxe() || (strtolower((string)$smeltLevel) !== "n" && $this->getLevel() >= $smeltLevel)){
                 foreach($block->getDropsForCompatibleTool($this->getInventory()->getItemInHand()) as $drop){
                     $inv->addItem($drop);
                 }
                 $success = true;
             }
             if(!in_array($block->getId(), Configuration::getUnbreakableBlocks()) && !$success){
-                $inv->addItem(Item::get($block->getId(), $block->getDamage()));
+                $inv->addItem(ItemFactory::getInstance()->get($block->getId(), $block->getMeta()));
                 $success = true;
             }
         }
         if($success){
-            $pk = new AnimatePacket();
-            $pk->entityRuntimeId = $this->id;
-            $pk->action = AnimatePacket::ACTION_SWING_ARM;
-            foreach (Server::getInstance()->getOnlinePlayers() as $p) $p->dataPacket($pk);
-            $this->getLevel()->setBlock($block, Block::get(Block::AIR), true, true);
+            $this->getWorld()->broadcastPacketToViewers($this->getPosition(), AnimatePacket::create($this->id, AnimatePacket::ACTION_SWING_ARM));
+            $this->getWorld()->setBlock($block->getPosition(), VanillaBlocks::AIR(), true);
         }
         return $success;
     }
 
-    public function getLevelM(): int{
-        return $this->namedtag->getInt("level");
+    public function getPlayer(): ?string{
+        return $this->player;
+    }
+
+    public function getLevel(): int{
+        return $this->level;
     }
 
     public function getLookingBlock(): Block{
-        return $this->getLevel()->getBlock($this->add($this->getDirectionVector()->multiply(1)));
+        return $this->getWorld()->getBlock(clone $this->getPosition()->addVector($this->getDirectionVector()->multiply(1)));
     }
 
     public function getLookingBehind(): Block{
-        return $this->getLevel()->getBlock($this->add($this->getDirectionVector()->multiply(-1)));
+        return $this->getWorld()->getBlock(clone $this->getPosition()->addVector($this->getDirectionVector()->multiply(-1))->add(0, 1, 0));
     }
 
     public function isChestLinked(): bool{
-        return $this->namedtag->getString("xyz") === "n" ? false : true;
+        return $this->chestPosition !== null;
+    }
+
+    public function setChestPosition(?Vector3 $chestPosition): void{
+        $this->chestPosition = $chestPosition;
     }
 
     public function getChestCoordinates(): string{
-        if(!isset($this->getCoord()[1])){
+        if(!$this->isChestLinked()){
             return TextFormat::RED . "Not found";
         }
-        $coord = TextFormat::YELLOW . "X: " . TextFormat::WHITE . $this->getCoord()[0] . " ";
-        $coord .= TextFormat::YELLOW . "Y: " . TextFormat::WHITE . $this->getCoord()[1] . " ";
-        $coord .= TextFormat::YELLOW . "Z: " . TextFormat::WHITE . $this->getCoord()[2] . " ";
+        $coord = TextFormat::YELLOW . "X: " . TextFormat::WHITE . $this->chestPosition->x . " ";
+        $coord .= TextFormat::YELLOW . "Y: " . TextFormat::WHITE . $this->chestPosition->y . " ";
+        $coord .= TextFormat::YELLOW . "Z: " . TextFormat::WHITE . $this->chestPosition->z . " ";
         return $coord;
     }
 
-    public function getCoord(): array{
-        $coord = explode(":", $this->namedtag->getString("xyz"));
-        return $coord;
+    public function getMainInventory(?callable $callable = null): InvMenu{
+        $menu = InvMenu::create(InvMenu::TYPE_HOPPER);
+        $inventory = $menu->getInventory();
+        $inventory->setItem(0, VanillaItems::REDSTONE_DUST()->setCustomName(TextFormat::RED . "Destorys the miner"));
+
+        $item = VanillaBlocks::CHEST()->asItem();
+        $item->setCustomName(TextFormat::DARK_GREEN . "Link a chest");
+        $item->setLore([" ",  TextFormat::YELLOW . "Linked: " . TextFormat::WHITE . ($this->isChestLinked() ? "Yes" : "Nope"), TextFormat::YELLOW . "Coordinates: " . TextFormat::WHITE . $this->getChestCoordinates()]);
+        $inventory->setItem(1, $item);
+
+        $menu->setListener(function (InvMenuTransaction $tr)use($callable): InvMenuTransactionResult{
+            $player = $tr->getPlayer();
+            $item = $tr->getItemClicked();
+
+            switch($item->getId()){
+                case ItemIds::REDSTONE_DUST:
+                    if($this->isFlaggedForDespawn()){
+                        return $tr->discard();
+                    }
+                    MinionListener::getInstance()->removeLinkable($player);
+                    $this->flagForDespawn();
+                    $player->getInventory()->addItem(Loader::getInstance()->asMinionItem(static::getMinionType(), $player, $this->getLevel()));
+                    break;
+                case ItemIds::CHEST:
+                    if($this->getLookingBehind() instanceof \pocketmine\block\Chest){
+                        $player->sendMessage(TextFormat::RED . "Please remove the chest behind the miner, to set new linkable chest.");
+                        return $tr->discard();
+                    }
+                    if(MinionListener::getInstance()->isLinkable($player)){
+                        $player->sendMessage(TextFormat::RED . "You are already on linking mode.");
+                        return $tr->discard();
+                    }
+                    MinionListener::getInstance()->addLinkable($player, $this);
+                    $player->sendMessage(TextFormat::LIGHT_PURPLE . "Please tap the chest that you want to link with.");
+                    break;
+            }
+            if($callable !== null){
+                return $callable($tr);
+            }
+            return $tr->discard();
+        });
+        return $menu;
     }
 }

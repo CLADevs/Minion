@@ -1,14 +1,16 @@
 name: Minion
-version: 1.9.5
-api: 3.0.0
-main: CLADevs\Minion\Main
+version: 2.0.0
+api: 4.0.0
+main: CLADevs\Minion\Loader
 author: CLADevs
-softdepend:
+depend:
   - EconomyAPI
 
 commands:
   minion:
+    permission: "minion.commands"
     description: "get the Minion Spawner!"
+
 permissions:
   minion.commands:
     description: "/minion command permission"

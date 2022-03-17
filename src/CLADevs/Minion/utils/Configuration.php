@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace CLADevs\Minion\utils;
 
-use CLADevs\Minion\Main;
+use CLADevs\Minion\Loader;
 use pocketmine\utils\Config;
 
 class Configuration{
 
     public static function getConfig(): Config{
-        return Main::get()->getConfig();
+        return Loader::getInstance()->getConfig();
     }
 
     public static function allowRandomNames(): bool{
@@ -25,10 +25,7 @@ class Configuration{
         return self::getConfig()->get("worlds", []);
     }
 
-    /**
-     * @return float|int
-     */
-    public static function getSize(){
+    public static function getSize(): float|int{
         return self::getConfig()->get("size", 0.8);
     }
 

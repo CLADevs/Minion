@@ -1,0 +1,10 @@
+---
+item:
+  item: "nether_star"
+  name: "&r&l&b* &6Farmer &bMiner *"
+  lore:
+    - "&r&7* &eTap the ground to place me"
+    - "&r&7* &eI will mine block in front me"
+    - "&r&7* &ePlease place chest behind me"
+    - "&r&7* &eThese steps help me get started"
+...
