@@ -8,7 +8,6 @@ use CLADevs\Minion\entities\MinionEntity;
 use CLADevs\Minion\entities\types\FarmerMinion;
 use CLADevs\Minion\entities\types\MinerMinion;
 use CLADevs\Minion\utils\Configuration;
-use CLADevs\Minion\utils\Utils;
 use pocketmine\block\Chest;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerInteractEvent;
@@ -60,7 +59,7 @@ class MinionListener implements Listener{
             $nbt->setString(MinionEntity::TAG_XYZ, $dnbt->getString(MinionEntity::TAG_XYZ, ""));
 
             $loc = clone $player->getLocation();
-            $loc->yaw = (90 + (Utils::getDirectionFromYaw($player->getLocation()->yaw) * 90)) % 360;
+            $loc->yaw = (90 + ($player->getHorizontalFacing() * 90)) % 360;
             $entity = match($dnbt->getString("summon")){
                 MinerMinion::getMinionType() => new MinerMinion($loc, $player->getSkin(), $nbt),
                 FarmerMinion::getMinionType() => new FarmerMinion($loc, $player->getSkin(), $nbt),
