@@ -185,7 +185,7 @@ abstract class MinionEntity extends Human{
     public function getMainInventory(?callable $callable = null): InvMenu{
         $menu = InvMenu::create(InvMenu::TYPE_HOPPER);
         $inventory = $menu->getInventory();
-        $inventory->setItem(0, VanillaItems::REDSTONE_DUST()->setCustomName(TextFormat::RED . "Destorys the miner"));
+        $inventory->setItem(0, VanillaItems::REDSTONE_DUST()->setCustomName(TextFormat::RED . "Destroys the miner"));
 
         $item = VanillaBlocks::CHEST()->asItem();
         $item->setCustomName(TextFormat::DARK_GREEN . "Link a chest");
