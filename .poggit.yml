@@ -4,4 +4,7 @@ branches:
 projects:
   Minion:
     path: ""
+    libs:
+      - src: muqsit/InvMenu/InvMenu
+        version: ^4.3.9
 ...
