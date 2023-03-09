@@ -5,6 +5,6 @@ projects:
   Minion:
     path: ""
     libs:
-      - src: muqsit/InvMenu/InvMenu
+      - src: muqsit/invMenu/InvMenu
         version: ^4.5.0
 ...
