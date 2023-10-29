@@ -12,6 +12,7 @@ use muqsit\invmenu\transaction\InvMenuTransaction;
 use muqsit\invmenu\transaction\InvMenuTransactionResult;
 use pocketmine\block\Block;
 use pocketmine\block\tile\Chest;
+use pocketmine\block\utils\MobHeadType;
 use pocketmine\block\VanillaBlocks;
 use pocketmine\entity\Human;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
@@ -111,7 +112,7 @@ abstract class MinionEntity extends Human{
     }
 
     public function sendSpawnItems(): void{
-        $this->getArmorInventory()->setHelmet(VanillaItems::PLAYER_HEAD());
+        $this->getArmorInventory()->setHelmet(VanillaBlocks::MOB_HEAD()->setMobHeadType(MobHeadType::PLAYER())->asItem());
         $this->getArmorInventory()->setChestplate(VanillaItems::LEATHER_TUNIC());
         $this->getArmorInventory()->setLeggings(VanillaItems::LEATHER_PANTS());
         $this->getArmorInventory()->setBoots(VanillaItems::LEATHER_BOOTS());
