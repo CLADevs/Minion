@@ -6,6 +6,7 @@ parameters:
     - phar:///pocketmine/PocketMine-MP.phar/vendor/autoload.php
   scanDirectories:
     - /source/src
+    - phar:///source/vendor/InvMenu.phar/src/
   excludePaths:
       analyse:
         - source/vendor
