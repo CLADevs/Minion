@@ -1,0 +1,23 @@
+name: PHPStan
+
+on: [push, pull_request]
+
+jobs:
+  phpstan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.ref }}
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+      - name: Create Vendor Directory
+        run: |
+          echo Making directory...
+          mkdir vendor
+          echo Directory made.
+      - name: Run PHPStan
+        uses: paroxity/pmmp-phpstan-action@5.3.0
+        with:
+          phpstan-config: phpstan.neon.dist

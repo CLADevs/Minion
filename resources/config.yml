@@ -15,7 +15,8 @@ blocks:
   normal: true
   #Blocks that cannot be broken
   #ids of block that cannot be broken
-  cannot: [7, 20]
+  # Must be vanilla names
+  cannot: ["obsidian"]
 
 level:
   #if they reach level 2 or higher they will have auto smelt unlocked put "n" to turn it off

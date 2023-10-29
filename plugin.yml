@@ -1,6 +1,6 @@
 name: Minion
-version: 2.0.0
-api: 4.0.0
+version: 2.1.0
+api: 5.0.0
 main: CLADevs\Minion\Loader
 author: CLADevs
 depend:
