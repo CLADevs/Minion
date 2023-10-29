@@ -9,7 +9,7 @@ use muqsit\invmenu\InvMenuHandler;
 use muqsit\invmenu\transaction\InvMenuTransaction;
 use muqsit\invmenu\transaction\InvMenuTransactionResult;
 use pocketmine\block\Block;
-use pocketmine\block\BlockLegacyIds;
+use pocketmine\block\BlockTypeIds;
 use pocketmine\block\Chest;
 use pocketmine\block\Crops;
 use pocketmine\item\VanillaItems;
@@ -50,7 +50,7 @@ class FarmerMinion extends MinionEntity{
                         $xz = clone $this->getPosition()->add($x, 0, $z);
                         $pos = clone $xz->subtract(0, 1, 0);
 
-                        if($this->getWorld()->getBlock($pos)->getId() === BlockLegacyIds::FARMLAND && $i !== 4){ //4 is middle block
+                        if($this->getWorld()->getBlock($pos)->getTypeId() === BlockTypeIds::FARMLAND && $i !== 4){ //4 is middle block
                             $b = $this->getWorld()->getBlock($xz);
 
                             if($b instanceof Crops && $b->getAge() >= 7){
@@ -80,7 +80,7 @@ class FarmerMinion extends MinionEntity{
                 $inv = $tile->getInventory();
 
                 foreach($inv->getContents() as $slot => $item){
-                    if($item->getBlock()->getId() === $block->getId()){
+                    if($item->getBlock()->getTypeId() === $block->getTypeId()){
                         $this->getInventory()->setItemInHand($item);
                         $this->getWorld()->setBlock($block->getPosition(), $item->getBlock(), true);
                         $this->sendSpawnItems();

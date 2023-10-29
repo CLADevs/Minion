@@ -26,8 +26,6 @@ class Loader extends PluginBase{
 
     private array $removeTap = [];
 
-    private array $minions = [];
-
     public function onLoad(): void{
         self::setInstance($this);
         foreach(array_keys($this->getResources()) as $path){

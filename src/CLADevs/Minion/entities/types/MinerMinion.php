@@ -12,7 +12,7 @@ use muqsit\invmenu\transaction\InvMenuTransactionResult;
 use onebone\economyapi\EconomyAPI;
 use pocketmine\block\Air;
 use pocketmine\block\Chest;
-use pocketmine\item\ItemIds;
+use pocketmine\item\ItemTypeIds;
 use pocketmine\item\VanillaItems;
 use pocketmine\player\Player;
 use pocketmine\Server;
@@ -75,7 +75,7 @@ class MinerMinion extends MinionEntity{
             $player = $tr->getPlayer();
             $item = $tr->getItemClicked();
 
-            if($item->getId() === ItemIds::EMERALD){
+            if($item->getTypeId() === ItemTypeIds::EMERALD){
                 if(($lvl = $this->getLevel()) >= Configuration::getMaxLevel()){
                     $player->sendMessage(TextFormat::RED . "You have maxed the level!");
                     return $tr->discard();

@@ -12,13 +12,12 @@ use muqsit\invmenu\transaction\InvMenuTransaction;
 use muqsit\invmenu\transaction\InvMenuTransactionResult;
 use pocketmine\block\Block;
 use pocketmine\block\tile\Chest;
+use pocketmine\block\utils\MobHeadType;
 use pocketmine\block\VanillaBlocks;
 use pocketmine\entity\Human;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\inventory\Inventory;
-use pocketmine\item\ItemFactory;
-use pocketmine\item\ItemIds;
+use pocketmine\item\ItemTypeIds;
 use pocketmine\item\VanillaItems;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
@@ -113,7 +112,7 @@ abstract class MinionEntity extends Human{
     }
 
     public function sendSpawnItems(): void{
-        $this->getArmorInventory()->setHelmet(VanillaItems::PLAYER_HEAD());
+        $this->getArmorInventory()->setHelmet(VanillaBlocks::MOB_HEAD()->setMobHeadType(MobHeadType::PLAYER())->asItem());
         $this->getArmorInventory()->setChestplate(VanillaItems::LEATHER_TUNIC());
         $this->getArmorInventory()->setLeggings(VanillaItems::LEATHER_PANTS());
         $this->getArmorInventory()->setBoots(VanillaItems::LEATHER_BOOTS());
@@ -136,8 +135,8 @@ abstract class MinionEntity extends Human{
                 }
                 $success = true;
             }
-            if(!in_array($block->getId(), Configuration::getUnbreakableBlocks()) && !$success){
-                $inv->addItem(ItemFactory::getInstance()->get($block->getId(), $block->getMeta()));
+            if(!in_array($block->getName(), Configuration::getUnbreakableBlocks()) && !$success){
+                $inv->addItem($block->asItem());
                 $success = true;
             }
         }
@@ -196,8 +195,8 @@ abstract class MinionEntity extends Human{
             $player = $tr->getPlayer();
             $item = $tr->getItemClicked();
 
-            switch($item->getId()){
-                case ItemIds::REDSTONE_DUST:
+            switch($item->getTypeId()){
+                case ItemTypeIds::REDSTONE_DUST:
                     if($this->isFlaggedForDespawn()){
                         return $tr->discard();
                     }
@@ -205,7 +204,7 @@ abstract class MinionEntity extends Human{
                     $this->flagForDespawn();
                     $player->getInventory()->addItem(Loader::getInstance()->asMinionItem(static::getMinionType(), $player, $this->getLevel()));
                     break;
-                case ItemIds::CHEST:
+                case VanillaBlocks::CHEST()->asItem()->getTypeId():
                     if($this->getLookingBehind() instanceof \pocketmine\block\Chest){
                         $player->sendMessage(TextFormat::RED . "Please remove the chest behind the miner, to set new linkable chest.");
                         return $tr->discard();

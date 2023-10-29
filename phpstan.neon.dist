@@ -1,0 +1,14 @@
+parameters:
+  paths:
+    - /source/src
+  level: 6
+  bootstrapFiles:
+    - phar:///pocketmine/PocketMine-MP.phar/vendor/autoload.php
+  scanDirectories:
+    - /source/src
+    - phar:///source/vendor/InvMenu.phar/src/
+  excludePaths:
+      analyse:
+        - source/vendor
+  reportUnmatchedIgnoredErrors: false
+  checkMissingIterableValueType: false
